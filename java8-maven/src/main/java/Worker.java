@@ -12,10 +12,12 @@ public class Worker {
     final Connection connection = factory.newConnection();
     final Channel channel = connection.createChannel();
 
-    channel.queueDeclare(TASK_QUEUE_NAME, true, false, false, null);
+    boolean durable = true;
+    channel.queueDeclare(TASK_QUEUE_NAME, durable, false, false, null);
     System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
 
-    channel.basicQos(1);
+    int prefetchCount = 1;
+    channel.basicQos(prefetchCount);
 
     final Consumer consumer = new DefaultConsumer(channel) {
       @Override
@@ -31,7 +33,9 @@ public class Worker {
         }
       }
     };
-    channel.basicConsume(TASK_QUEUE_NAME, false, consumer);
+    //Auto ACK is by default false
+    boolean autoAck = false;
+    channel.basicConsume(TASK_QUEUE_NAME, autoAck, consumer);
   }
 
   private static void doWork(String task) {
